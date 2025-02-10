@@ -1,4 +1,6 @@
 .DS_Store
+.local
 keys/
 research/results
 front-api/data_json
+__pycache__
