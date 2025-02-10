@@ -1,36 +1,38 @@
 from confluent_kafka import Consumer, KafkaException, KafkaError
 
-# Configuration du consommateur Kafka
+# Configuration du consommateur
 conf = {
-    'bootstrap.servers': 'localhost:9092',  # Adresse du serveur Kafka
-    'group.id': 'mon-groupe-consommateur',  # Identifiant du groupe de consommateurs
-    'auto.offset.reset': 'earliest'  # Lire tous les messages depuis le début
+    'bootstrap.servers': 'localhost:9092',  # adresse du broker Kafka
+    'group.id': 'python-consumer-group',
+    'auto.offset.reset': 'earliest'
 }
 
-# Créer le consommateur
+# Création de l'objet Consommateur
 consumer = Consumer(conf)
 
-# S'abonner au topic
-consumer.subscribe(['test-topic'])
+# Souscription au topic
+topic = 'test_topic'
+consumer.subscribe([topic])
 
-print("📡 En attente de messages Kafka...")
-
+# Consommer des messages
 try:
     while True:
-        msg = consumer.poll(1.0)  # Vérifie les messages toutes les secondes
-
+        msg = consumer.poll(1.0)  # Attente d'un message pendant 1 seconde
         if msg is None:
+            # Pas de message reçu dans le délai imparti
             continue
         if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
-                continue
+                # Fin de partition
+                print(f"Atteint la fin de la partition: {msg.topic()} [{msg.partition()}] à offset {msg.offset()}")
             else:
                 raise KafkaException(msg.error())
-
-        # Affiche le message reçu
-        print(f"📥 Message reçu : {msg.value().decode('utf-8')}")
+        else:
+            # Message reçu
+            print(f"Message reçu: {msg.value().decode('utf-8')}")
 
 except KeyboardInterrupt:
-    print("\n📴 Arrêt du consommateur")
+    pass
 finally:
+    # Fermeture propre
     consumer.close()

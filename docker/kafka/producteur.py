@@ -1,15 +1,28 @@
 from confluent_kafka import Producer
+import sys
 
-conf = {'bootstrap.servers': 'localhost:9092'}
+# Configuration du producteur
+conf = {
+    'bootstrap.servers': 'localhost:9092',  # adresse du broker Kafka
+    'client.id': 'python-producer'
+}
+
+# Création de l'objet Producteur
 producer = Producer(conf)
 
+# Fonction de callback pour la gestion des erreurs
 def delivery_report(err, msg):
     if err is not None:
-        print(f"Erreur: {err}")
+        print('Erreur lors de l\'envoi du message: {}'.format(err))
     else:
-        print(f"Message envoyé: {msg.value().decode()}")
+        print('Message envoyé avec succès à {} [{}]'.format(msg.topic(), msg.partition()))
 
-for i in range(5):
-    producer.produce('test-topic', f'Message {i}', callback=delivery_report)
+# Envoi de messages
+topic = 'test_topic'
+for i in range(10):
+    message = f'Message {i}'
+    producer.produce(topic, message.encode('utf-8'), callback=delivery_report)
+    producer.poll(0)
 
+# Attendre que tous les messages aient été envoyés avant de terminer
 producer.flush()
