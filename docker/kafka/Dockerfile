@@ -14,6 +14,12 @@ RUN apt-get update && apt-get install -y wget \
     && rm -f kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
+# Installer pip et confluent_kafka pour Python
+RUN apt-get update && apt-get install -y python3 python3-pip \
+    && pip3 install confluent_kafka
+
+
 # Exposer les ports Kafka et Zookeeper
 EXPOSE 9092 2181
 
