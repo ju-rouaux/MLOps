@@ -1,5 +1,6 @@
 .DS_Store
 .local
+.env
 keys/
 research/results
 front-api/data_json

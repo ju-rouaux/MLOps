@@ -5,7 +5,6 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      
 
   mongo:
     image: mongo:8.0.4
