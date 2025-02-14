@@ -1,6 +1,6 @@
 services:
   data-acquisition-app:
-    build: ../data-acquisition-app
+    build: ./data-acquisition-app
     environment:
       - KAFKA_BROKER_URI=kafka:9092
     depends_on:
@@ -8,7 +8,7 @@ services:
         condition: service_healthy
 
   data-ingestion-app:
-    build: ../data-ingestion-app
+    build: ./data-ingestion-app
     environment:
       - KAFKA_BROKER_URI=kafka:9092
       - MONGO_DB_URI=mongodb://mongo:27017
