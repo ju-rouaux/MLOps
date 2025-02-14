@@ -11,6 +11,26 @@ from sklearn.linear_model import LogisticRegression
 # Crée l'application FastAPI
 app = FastAPI()
 
+
+#######
+
+# Charger le modèle RandomForest depuis MLflow
+#model_uri = "models:/random_forest_model/production"
+#model = mlflow.sklearn.load_model(model_uri)
+
+# Faire une prédiction avec un échantillon de données
+#sample_data = X_test[0].reshape(1, -1)
+#prediction = model.predict(sample_data)
+#print(f"Prédiction : {prediction}")
+
+
+# Mettre à jour un modèle dans l'environnement 'production' de MLflow
+#mlflow.register_model("models:/random_forest_model", "production")
+
+#######
+
+
+
 # Charger les modèles et outils nécessaires
 try:
     model = joblib.load('logistic_regression_model.pkl')  # Modèle de classification
