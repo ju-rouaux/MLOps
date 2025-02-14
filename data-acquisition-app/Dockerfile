@@ -8,10 +8,9 @@ COPY . /app
 
 # Install any Python dependencies
 RUN conda env create -f environment.yml -n acquisition
-RUN pip install "fastapi[standard]"
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
 # When the container launches
-CMD ["conda", "run", "-n", "acquisition", "fastapi", "run", "app/app.py", "--port", "80"]
+CMD ["conda", "run", "-n", "acquisition", "python", "app/app.py"]

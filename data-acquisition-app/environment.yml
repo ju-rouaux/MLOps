@@ -1,0 +1,8 @@
+name: data-acquisition-app
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - conda-forge::kafka-python
+prefix: /opt/miniconda3/envs/data-acquisition-app
