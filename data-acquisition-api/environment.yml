@@ -4,4 +4,6 @@ channels:
   - defaults
 dependencies:
   - python=3.11
+  - conda-forge::kafka-python
+  - conda-forge::pymongo
 prefix: /opt/miniconda3/envs/data-acquisition-api
