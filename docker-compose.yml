@@ -4,6 +4,8 @@ services:
     environment:
       - KAFKA_BROKER_URI=kafka:9092
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      - ${WORKING_DIRECTORY:-./.temp}/acquisition:/app/saves
 
     depends_on:
       kafka:
@@ -25,7 +27,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ${MONGO_VOLUME}:/data/db
+      - ${WORKING_DIRECTORY:-./.temp}/mongo:/data/db
 
   kafka:
     image: bitnami/kafka:latest

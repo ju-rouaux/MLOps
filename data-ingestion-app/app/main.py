@@ -32,6 +32,7 @@ print("Successfully connected to Kafka")
 
 
 # Consume messages
+print("Listening for messages...")
 for message in consumer:
   if message is not None:
     repo_obj = message.value
@@ -48,10 +49,8 @@ for message in consumer:
 
     # Insert or update
     if collection.find_one({"user": user, "repo": repo}):
-      print(f"{user}/{repo} already exists in the database. Updating...")
       collection.update_one({"user": user, "repo": repo}, {"$set": repo_obj})
     else:
       collection.insert_one(repo_obj)
-      print(f"Inserted new record for {user}/{repo}.")
   else:
     print("No message received")
