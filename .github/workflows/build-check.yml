@@ -5,7 +5,7 @@ on:
     branches: [ "dev" ]
 
 env:
-  MONGO_VOLUME: ${{ vars.MONGO_VOLUME }}
+  WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
 
 jobs:
 
