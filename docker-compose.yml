@@ -26,8 +26,6 @@ services:
       - 27017:27017
     volumes:
       - ${MONGO_VOLUME}:/data/db
-    env_file: 
-      ".env"
 
   kafka:
     image: bitnami/kafka:latest
