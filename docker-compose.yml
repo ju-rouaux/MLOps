@@ -46,3 +46,17 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+  fastapi:
+    build: ./  # À adapter si le Dockerfile est dans un sous-dossier spécifique
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - KAFKA_BROKER_URI=kafka:9092
+      - MONGO_DB_URI=mongodb://mongo:27017
+    volumes:
+      - .:/app
+    depends_on:
+      - kafka
+      - mongo
+    restart: unless-stopped
