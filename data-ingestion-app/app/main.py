@@ -9,7 +9,7 @@ KAFKA_BROKER_URI = os.getenv("KAFKA_BROKER_URI", "localhost:9094")
 
 try:
   # Establish connection
-  client = MongoClient("local")
+  client = MongoClient(MONGO_URI)
 
   # Test the connection
   db_list = client.list_database_names()
