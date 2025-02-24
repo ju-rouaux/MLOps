@@ -4,10 +4,14 @@ on:
   push:
     branches: [ "dev" ]
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  MONGO_VOLUME: ${{ vars.MONGO_VOLUME }}
+
 jobs:
 
   build:
-    timeout-minutes: 60
+    timeout-minutes: 3
     runs-on: ubuntu-latest
 
     steps:
