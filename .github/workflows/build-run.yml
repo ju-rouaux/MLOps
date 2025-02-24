@@ -11,18 +11,19 @@ env:
 jobs:
 
   build:
-    timeout-minutes: 3
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: Build and start the Docker containers
       run: docker compose up --build -d
+    - name: Wait for 2 minutes
+      run: sleep 120
     - name: Check if services are running
       run: |
           if ! docker compose ps | grep "Up"; then
               echo "One or more services are not running."
               exit 1
-          fi
     - name: Stop and remove Docker containers
       run: docker compose down
