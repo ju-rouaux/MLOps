@@ -1,9 +1,0 @@
-name: data-ingestion-app
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.11
-  - conda-forge::kafka-python
-  - conda-forge::pymongo
-prefix: /opt/miniconda3/envs/data-ingestion-app

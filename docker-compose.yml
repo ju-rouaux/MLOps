@@ -3,6 +3,8 @@ services:
     build: ./data-acquisition-app
     environment:
       - KAFKA_BROKER_URI=kafka:9092
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+
     depends_on:
       kafka:
         condition: service_healthy
