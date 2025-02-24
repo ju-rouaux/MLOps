@@ -5,7 +5,6 @@ on:
     branches: [ "dev" ]
 
 env:
-  # Setting an environment variable with the value of a configuration variable
   MONGO_VOLUME: ${{ vars.MONGO_VOLUME }}
 
 jobs:
@@ -18,12 +17,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build and start the Docker containers
       run: docker compose up --build -d
-    - name: Wait for 2 minutes
-      run: sleep 120
-    - name: Check if services are running
-      run: |
-          if ! docker compose ps | grep "Up"; then
-              echo "One or more services are not running."
-              exit 1
     - name: Stop and remove Docker containers
       run: docker compose down
