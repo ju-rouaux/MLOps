@@ -47,7 +47,7 @@ services:
       timeout: 10s
       retries: 5
   fastapi:
-    build: ./  # À adapter si le Dockerfile est dans un sous-dossier spécifique
+    build: ./front-api
     ports:
       - "8000:8000"
     environment:
