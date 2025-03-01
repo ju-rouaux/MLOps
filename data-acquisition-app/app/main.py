@@ -53,10 +53,11 @@ def build_repo_object(user: str, repo: str):
 
 
 # Handle progress
-PROGRESS_FILE = 'saves/progress.json'
+PROGRESS_FILE = 'saves/acquisition-progress.json'
 
-def save_progress(page, processed_repos):
+def save_progress(language, page, processed_repos):
     progress = {
+        'language': language,
         'page': page,
         'processed_repos': processed_repos
     }
@@ -68,42 +69,48 @@ def load_progress():
         with open(PROGRESS_FILE, 'r') as file:
             progress = json.load(file)
             print("Progress loaded.")
-            return progress['page'], progress['processed_repos']
+            return progress['language'], progress['page'], progress['processed_repos']
     print("No progress found.")
-    return 1, [] # Page 1, no processed repos
+    return LANGUAGES[0], 1, [] # First language, Page 1, no processed repos
 
-page, processed_repos = load_progress()
-
+current_language, page, processed_repos = load_progress()
 
 # Main loop
 print("Starting main loop!")
-for language in LANGUAGES:
-    try:
-        results = gr.request_user_and_repo(language, page, headers=HEADERS)
-    except Exception as e:
-        print(f"Failed to request user and repo for language {language}: {e}")
-        continue
-
-    for user, repo in results:
-        if (user, repo) in processed_repos:
+while page <= 10: # Github only allows the first 1000 results
+    for language in LANGUAGES:
+        if language != current_language:
             continue
-
-        start_time = time.time()
 
         try:
-            repo_object = build_repo_object(user, repo)
+            results = gr.request_user_and_repo(language, page, headers=HEADERS)
         except Exception as e:
-            print(f"Failed to build repo object for {user}/{repo}: {e}")
+            print(f"Failed to request user and repo for language {language}: {e}")
             continue
 
-        producer.send('new-git-repository', json.dumps(repo_object).encode('utf-8'))
-        processed_repos.append((user, repo))
-        save_progress(page, processed_repos)
+        for user, repo in results:
+            if (user, repo) in processed_repos:
+                continue
 
-        # Wait before the next request
-        elapsed_time = time.time() - start_time
-        if elapsed_time < wait_between_requests:
-            time.sleep(wait_between_requests - elapsed_time)
+            start_time = time.time()
+
+            try:
+                repo_object = build_repo_object(user, repo)
+            except Exception as e:
+                print(f"Failed to build repo object for {user}/{repo}: {e}")
+                continue
+
+            producer.send('new-git-repository', json.dumps(repo_object).encode('utf-8'))
+            processed_repos.append((user, repo))
+            save_progress(language, page, processed_repos)
+
+            # Wait before the next request
+            elapsed_time = time.time() - start_time
+            if elapsed_time < wait_between_requests:
+                time.sleep(wait_between_requests - elapsed_time)
+
+        current_language = LANGUAGES[(LANGUAGES.index(language) + 1) % len(LANGUAGES)]
+        save_progress(current_language, page, processed_repos)
 
     page += 1
-    save_progress(page, processed_repos)
+    save_progress(current_language, page, processed_repos)
