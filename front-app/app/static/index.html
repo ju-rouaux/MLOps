@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Prediction</title>
+    <script>
+        async function predictLanguage() {
+            const text = document.getElementById("text-input").value;
+            const response = await fetch("/predict/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ readme: text })
+            });
+            const result = await response.json();
+            document.getElementById("prediction-result").innerText = `Predicted Language: ${result.predicted_language}`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Language Prediction</h1>
+    <textarea id="text-input" rows="10" cols="50" placeholder="Enter your text here..."></textarea><br>
+    <button onclick="predictLanguage()">Predict</button>
+    <p id="prediction-result"></p>
+</body>
+</html>

@@ -46,17 +46,12 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-  fastapi:
-    build: ./front-api
+
+  front-app:
+    build: ./front-app
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=production
       - KAFKA_BROKER_URI=kafka:9092
       - MONGO_DB_URI=mongodb://mongo:27017
-    volumes:
-      - .:/app
-    depends_on:
-      - kafka
-      - mongo
-    restart: unless-stopped
