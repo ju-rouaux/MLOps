@@ -66,12 +66,18 @@ def save_progress(language, page, processed_repos):
 
 def load_progress():
     if os.path.exists(PROGRESS_FILE):
-        with open(PROGRESS_FILE, 'r') as file:
-            progress = json.load(file)
-            print("Progress loaded.")
-            return progress['language'], progress['page'], progress['processed_repos']
-    print("No progress found.")
-    return LANGUAGES[0], 1, [] # First language, Page 1, no processed repos
+        try:
+            with open(PROGRESS_FILE, 'r') as file:
+                progress = json.load(file)
+                print("Progress loaded.")
+                return progress.get('language', LANGUAGES[0]), progress.get('page', 1), progress.get('processed_repos', [])
+        except json.JSONDecodeError:
+            print("Failed to decode progress file. Resetting progress.")
+    else:
+        print("No progress file found.")
+    
+    save_progress(LANGUAGES[0], 1, [])
+    return LANGUAGES[0], 1, []
 
 current_language, page, processed_repos = load_progress()
 
