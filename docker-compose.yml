@@ -28,6 +28,7 @@ services:
       - 27017:27017
     volumes:
       - ${WORKING_DIRECTORY:-./.temp}/mongo:/data/db
+    command: mongod --quiet
 
   kafka:
     image: bitnami/kafka:latest
