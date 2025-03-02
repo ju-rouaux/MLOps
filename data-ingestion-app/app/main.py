@@ -1,11 +1,13 @@
 from pymongo import MongoClient
-from kafka import KafkaConsumer
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json, col, udf
+from pyspark.sql.types import StructType, StructField, StringType, MapType, TimestampType, LongType
 import json
 import os
 import sys
 import logging
 from datetime import datetime
-
+from pyspark.sql.functions import current_timestamp
 
 MONGO_URI = os.getenv("MONGO_DB_URI", "mongodb://localhost:27017/")
 KAFKA_BROKER_URI = os.getenv("KAFKA_BROKER_URI", "localhost:9094")
@@ -26,47 +28,71 @@ except Exception as e:
   sys.exit(1)  # Exit the program if connection fails
 
 
-# Initialize the consumer
-consumer = KafkaConsumer(
-  'new-git-repository',
-  bootstrap_servers=KAFKA_BROKER_URI,
-  enable_auto_commit=True,
-  value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-)
-print("Successfully connected to Kafka")
+# Initialize Spark session with Kafka and MongoDB packages
+spark = SparkSession.builder \
+    .appName("KafkaSparkStreaming") \
+    .config("spark.mongodb.output.uri", MONGO_URI) \
+    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2,org.mongodb.spark:mongo-spark-connector_2.12:3.0.1") \
+    .getOrCreate()
 
 
-
-# Function to validate and clean data
-def validate_and_prepare_data(repo_obj):
-    required_fields = ["user", "repo", "languages", "readme"]
-    for field in required_fields:
-        if field not in repo_obj:
-            logging.warning(f"Missing field {field} in received data: {repo_obj}")
-            return None
-    
-    repo_obj["last_updated"] = datetime.now()
-    return repo_obj
+# Define schema for incoming data
+schema = StructType([
+    StructField("user", StringType(), True),
+    StructField("repo", StringType(), True),
+    StructField("languages", MapType(StringType(), StringType()), True),
+    StructField("readme", StringType(), True),
+])
 
 
-# Consume messages
-print("Listening for messages...")
+# Read data from Kafka
+df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", KAFKA_BROKER_URI) \
+    .option("subscribe", "new-git-repository") \
+    .load()
 
-for message in consumer:
-    try:
-        if message is not None:
-            repo_obj = message.value
-            processed_data = validate_and_prepare_data(repo_obj)
-            
-            if processed_data:
-                filter_query = {"user": processed_data["user"], "repo": processed_data["repo"]}
-                update_data = {"$set": processed_data}
-                collection.update_one(filter_query, update_data, upsert=True)
-                logging.info(f"Inserted/Updated repository: {processed_data['user']}/{processed_data['repo']}")
-            else:
-                logging.warning("Invalid data received, skipping insertion.")
-    except Exception as e:
-        logging.error(f"Error processing message: {e}")
+
+# Deserialize JSON data
+df = df.selectExpr("CAST(value AS STRING)") \
+    .select(from_json(col("value"), schema).alias("data")) \
+    .select("data.*")
+
+
+# ============ FUNCTIONS =================
+
+def replace_dots_in_keys(languages):
+  return {k.replace('.', '_'): v for k, v in languages.items()}
+
+def process_readme_function(input_data):
+  return "processed: " + input_data
+
+process_readme_udf = udf(process_readme_function, StringType())
+replace_dots_udf = udf(replace_dots_in_keys, MapType(StringType(), LongType()))
+
+df = df.withColumn("languages", replace_dots_udf(col("languages")))
+df = df.withColumn("processed_readme", process_readme_udf(col("readme")))
+df = df.withColumn("last_updated", current_timestamp())
+
+# ========================================
+
+
+# Process and write data to MongoDB
+def write_to_mongo(df, _):
+    df.write \
+        .format("mongo") \
+        .mode("append") \
+        .option("database", "dev") \
+        .option("collection", "raw_data") \
+        .save()
+
+
+# Start the streaming query
+query = df.writeStream \
+    .foreachBatch(write_to_mongo) \
+    .start()
+
+query.awaitTermination()
 
 
 

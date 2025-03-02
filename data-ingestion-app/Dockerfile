@@ -1,4 +1,4 @@
-FROM python:3.11.11-alpine3.21
+FROM bitnami/spark:3.5.5
 
 # Set the working directory in the container
 WORKDIR /app
