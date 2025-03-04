@@ -56,3 +56,11 @@ services:
       - ENVIRONMENT=production
       - KAFKA_BROKER_URI=kafka:9092
       - MONGO_DB_URI=mongodb://mongo:27017
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.20.1
+    ports:
+      - 8090:8080
+    command: mlflow server --host 0.0.0.0 --port 8080 --backend-store-uri /mlflow/backend --default-artifact-root /mlflow/artifacts
+    volumes:
+      - ${WORKING_DIRECTORY:-./.temp}/mlflow:/data/db
