@@ -9,6 +9,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - mlops_project
 
   data-ingestion-app:
     build: ./data-ingestion-app
@@ -20,6 +22,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_started
+    networks:
+      - mlops_project
 
   mongo:
     image: mongo:8.0.4
@@ -28,6 +32,8 @@ services:
     volumes:
       - ${WORKING_DIRECTORY:-./.temp}/mongo:/data/db
     command: mongod --quiet
+    networks:
+      - mlops_project
 
   kafka:
     image: bitnami/kafka:latest
@@ -46,6 +52,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    networks:
+      - mlops_project
 
   front-app:
     build: ./front-app
@@ -55,6 +63,8 @@ services:
       - ENVIRONMENT=production
       - KAFKA_BROKER_URI=kafka:9092
       - MONGO_DB_URI=mongodb://mongo:27017
+    networks:
+      - mlops_project
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.20.1
@@ -63,3 +73,10 @@ services:
     command: mlflow server --host 0.0.0.0 --port 8080 --backend-store-uri /mlflow/backend --default-artifact-root /mlflow/artifacts
     volumes:
       - ${WORKING_DIRECTORY:-./.temp}/mlflow:/data/db
+    networks:
+      - mlops_project
+
+networks:
+  mlops_project:
+    name: mlops_project
+    driver: bridge
