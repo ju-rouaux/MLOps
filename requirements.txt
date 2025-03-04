@@ -1,0 +1,6 @@
+pymongo
+mlflow
+gensim
+nltk
+scikit-learn
+numpy
