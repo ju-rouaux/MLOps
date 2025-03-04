@@ -6,7 +6,6 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
     volumes:
       - ${WORKING_DIRECTORY:-./.temp}/acquisition:/app/saves
-
     depends_on:
       kafka:
         condition: service_healthy
