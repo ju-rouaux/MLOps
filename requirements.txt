@@ -1,6 +1,8 @@
-pymongo
-mlflow
-gensim
-nltk
-scikit-learn
-numpy
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
+transformers==4.49.0
+pymongo==4.11.2
+pyspark==3.5.5
+mlflow==2.20.3
+scikit-learn==1.6.1

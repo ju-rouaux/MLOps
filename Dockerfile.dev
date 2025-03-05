@@ -1,7 +1,6 @@
 FROM bitnami/spark:3.5.5
 
-USER root
+ENV PATH="/.local/bin:${PATH}"
 
-# Install any Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
