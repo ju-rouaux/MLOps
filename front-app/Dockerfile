@@ -1,21 +1,20 @@
-# Use a base image with Miniconda, spacy could not be installed using pip in the previous Dockerfile on ARM architecture
-FROM continuumio/miniconda3
+# Use a base Python image with Alpine for a smaller footprint
+FROM python:3.11.11
 
-# Create a conda environment and install dependencies
-RUN conda create -n env python=3.9
-RUN conda install -n env -c conda-forge spacy flask mlflow scikit-learn gensim joblib numpy
+USER root
 
-# Define the working directory in the container
+# Set the working directory in the container
 WORKDIR /app
 
 # Copy the project files into the container
 COPY /app .
 
-# Activate the environment
-SHELL ["conda", "run", "-n", "env", "/bin/bash", "-c"]
+# Install the required Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8000 to access the API
+# Expose port 8000 to access the API (changed to 8000 to match original Dockerfile)
 EXPOSE 8000
 
-# Command to launch the Flask application
-CMD ["conda", "run", "-n", "env", "python", "main.py"]
+# Command to run the Flask application
+CMD ["python", "-u", "main.py"]
