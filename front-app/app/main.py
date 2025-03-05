@@ -7,9 +7,32 @@ from flask import Flask, request, jsonify, send_from_directory
 # from sklearn.preprocessing import LabelEncoder
 # import joblib  # Pour charger le modèle de classification
 # from sklearn.linear_model import LogisticRegression
+import os
+import sys
+from datetime import datetime
+from pymongo import MongoClient
 
-# Crée l'application Flask
+print("a")
+MONGO_URI = os.getenv("MONGO_DB_URI", "mongodb://mongo:27017/")
+
+# Créer l'application Flask
 app = Flask(__name__, static_folder='static')
+
+# Connexion à MongoDB
+try:
+  # Establish connection
+  client = MongoClient("mongodb://mongo:27017/")
+
+  # Test the connection
+  db_list = client.list_database_names()
+  db = client.get_database("dev")
+  collection = db.get_collection("front_app_logs")
+  print("Successfully connected to MongoDB")
+  print("Databases:", db_list)
+
+except Exception as e:
+  print("Error connecting to MongoDB:", e)
+  sys.exit(1)  # Exit the program if connection fails
 
 # # Charger les modèles et outils nécessaires
 # try:
@@ -86,6 +109,14 @@ def predict():
     try:
         data = request.get_json()
         predicted_language = "javascript"
+      
+        content = {}
+        content["input"] = data["readme"]
+        content["prediction"] = predicted_language
+        content["time"] = datetime.now().isoformat()
+        
+        collection.insert_one(content)
+
         return jsonify({"predicted_language": predicted_language})
     except Exception as e:
         return jsonify({"error": f"Erreur interne : {e}"}), 500
