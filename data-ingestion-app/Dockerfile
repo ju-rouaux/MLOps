@@ -1,5 +1,7 @@
 FROM bitnami/spark:3.5.5
 
+USER root
+
 # Set the working directory in the container
 WORKDIR /app
 
