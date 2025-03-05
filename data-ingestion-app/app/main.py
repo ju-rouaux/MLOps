@@ -41,6 +41,7 @@ spark.sparkContext.setLogLevel("ERROR")
 schema = StructType([
     StructField("user", StringType(), True),
     StructField("repo", StringType(), True),
+    StructField("mainLanguage", StringType(), True),
     StructField("languages", MapType(StringType(), StringType()), True),
     StructField("readme", StringType(), True),
 ])
@@ -94,6 +95,3 @@ query = df.writeStream \
     .start()
 
 query.awaitTermination()
-
-
-

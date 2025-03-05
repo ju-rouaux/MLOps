@@ -1,3 +1,7 @@
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
+transformers==4.49.0
 kafka-python==2.0.4
 pymongo==4.11.1
 pyspark==3.5.5

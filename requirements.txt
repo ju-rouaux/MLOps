@@ -6,3 +6,5 @@ pymongo==4.11.2
 pyspark==3.5.5
 mlflow==2.20.3
 scikit-learn==1.6.1
+ipython==9.0.1
+ipykernel==6.29.5
