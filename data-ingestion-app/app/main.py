@@ -8,6 +8,7 @@ import sys
 import logging
 from datetime import datetime
 from pyspark.sql.functions import current_timestamp
+from transformers import DistilBertTokenizer
 
 MONGO_URI = os.getenv("MONGO_DB_URI", "mongodb://localhost:27017/")
 KAFKA_BROKER_URI = os.getenv("KAFKA_BROKER_URI", "localhost:9094")
@@ -66,14 +67,22 @@ df = df.selectExpr("CAST(value AS STRING)") \
 def replace_dots_in_keys(languages):
   return {k.replace('.', '_'): v for k, v in languages.items()}
 
-def process_readme_function(input_data):
-  return "processed: " + input_data
 
-process_readme_udf = udf(process_readme_function, StringType())
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+
+
+def readme_tokenizer(readme):
+    tokens = tokenizer.tokenize(readme)
+    return " ".join(tokens)
+
+
+# Convertir la fonction en UDF Spark
+readme_tokenizer_udf = udf(readme_tokenizer, StringType())
+
 replace_dots_udf = udf(replace_dots_in_keys, MapType(StringType(), LongType()))
 
 df = df.withColumn("languages", replace_dots_udf(col("languages")))
-df = df.withColumn("processed_readme", process_readme_udf(col("readme")))
+df = df.withColumn("processed_readme", readme_tokenizer_udf(col("readme")))
 df = df.withColumn("last_updated", current_timestamp())
 
 # ========================================
