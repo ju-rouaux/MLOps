@@ -8,8 +8,20 @@ from flask import Flask, request, jsonify, send_from_directory
 # import joblib  # Pour charger le modèle de classification
 # from sklearn.linear_model import LogisticRegression
 
+from transformers import DistilBertTokenizer
+import mlflow
+import mlflow.pyfunc
+import numpy as np
+import torch
+
+
 # Crée l'application Flask
 app = Flask(__name__, static_folder='static')
+
+# Charger le tokenizer DistilBERT
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+
+
 
 # # Charger les modèles et outils nécessaires
 # try:
@@ -79,13 +91,31 @@ app = Flask(__name__, static_folder='static')
 #     except Exception as e:
 #         return jsonify({"error": f"Erreur interne : {e}"}), 500
 
+model_uri = "http://mlflow:8080/api/2.0/mlflow/models/get/Model_Pour_Api/versions/1"  # Exemple de modèle version 1
+model = mlflow.pyfunc.load_model(model_uri)
 
 # Mock prediction
 @app.route("/predict/", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
-        predicted_language = "javascript"
+        readme_text = data.get("readme", "")
+
+        # Tokenization avec DistilBERT
+        tokens = tokenizer(readme_text, padding=True, truncation=True, return_tensors="pt")
+
+        # Les tokens sont prêts à être passés à votre modèle
+        # Assurez-vous que votre modèle peut accepter ces tensors (par exemple sous forme de tableau numpy)
+        # Si le modèle prend directement des tenseurs PyTorch
+        inputs = tokens['input_ids'].numpy()
+
+        # Prédiction avec le modèle MLflow
+        # Si vous avez besoin de passer des tenseurs PyTorch, vous pouvez faire `inputs = torch.tensor(inputs)`
+        prediction = model.predict(inputs)
+
+        # Traitez la prédiction et retournez la réponse
+        predicted_language = prediction[0]  # Ajustez selon la sortie de votre modèle
+       
         return jsonify({"predicted_language": predicted_language})
     except Exception as e:
         return jsonify({"error": f"Erreur interne : {e}"}), 500
