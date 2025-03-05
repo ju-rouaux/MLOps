@@ -1,22 +1,21 @@
 from flask import Flask, request, jsonify, send_from_directory
-# from pydantic import BaseModel
-# import mlflow
-# import spacy
-# import numpy as np
-# from gensim.models import Word2Vec
-# from sklearn.preprocessing import LabelEncoder
-# import joblib  # Pour charger le modèle de classification
-# from sklearn.linear_model import LogisticRegression
 import os
 import sys
 from datetime import datetime
 from pymongo import MongoClient
+from transformers import DistilBertTokenizer
+import mlflow
+import mlflow.pyfunc
+import numpy as np
+import torch
 
-print("a")
+
 MONGO_URI = os.getenv("MONGO_DB_URI", "mongodb://mongo:27017/")
+
 
 # Créer l'application Flask
 app = Flask(__name__, static_folder='static')
+
 
 # Connexion à MongoDB
 try:
@@ -33,6 +32,11 @@ try:
 except Exception as e:
   print("Error connecting to MongoDB:", e)
   sys.exit(1)  # Exit the program if connection fails
+
+
+# Charger le tokenizer DistilBERT
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+
 
 # # Charger les modèles et outils nécessaires
 # try:
@@ -102,13 +106,31 @@ except Exception as e:
 #     except Exception as e:
 #         return jsonify({"error": f"Erreur interne : {e}"}), 500
 
+model_uri = "http://mlflow:8080/api/2.0/mlflow/models/get/Model_Pour_Api/versions/1"  # Exemple de modèle version 1
+model = mlflow.pyfunc.load_model(model_uri)
 
 # Mock prediction
 @app.route("/predict/", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
-        predicted_language = "javascript"
+        readme_text = data.get("readme", "")
+
+        # Tokenization avec DistilBERT
+        tokens = tokenizer(readme_text, padding=True, truncation=True, return_tensors="pt")
+
+        # Les tokens sont prêts à être passés à votre modèle
+        # Assurez-vous que votre modèle peut accepter ces tensors (par exemple sous forme de tableau numpy)
+        # Si le modèle prend directement des tenseurs PyTorch
+        inputs = tokens['input_ids'].numpy()
+
+        # Prédiction avec le modèle MLflow
+        # Si vous avez besoin de passer des tenseurs PyTorch, vous pouvez faire `inputs = torch.tensor(inputs)`
+        prediction = model.predict(inputs)
+
+        # Traitez la prédiction et retournez la réponse
+        predicted_language = prediction[0]  # Ajustez selon la sortie de votre modèle
+       
       
         content = {}
         content["input"] = data["readme"]
