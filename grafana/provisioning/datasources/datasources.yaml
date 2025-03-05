@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: haohanyang-mongodb-datasource
+    type: haohanyang-mongodb-datasource
+    access: proxy
+    orgId: 1
+    uid: aeexhxhim248wc
+    isDefault: true
+    jsonData:
+      authType: auth-none
+      connectionStringScheme: standard
+      database: dev
+      host: mongo
+      port: 27017
+    readOnly: false

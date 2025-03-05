@@ -76,6 +76,16 @@ services:
     networks:
       - mlops_project
 
+  grafana:
+    build: ./grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    networks:
+      - mlops_project
+
 networks:
   mlops_project:
     name: mlops_project
