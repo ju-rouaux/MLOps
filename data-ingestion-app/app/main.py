@@ -9,6 +9,10 @@ import logging
 from datetime import datetime
 from pyspark.sql.functions import current_timestamp
 from transformers import DistilBertTokenizer
+from transformers import DistilBertModel
+import torch
+import torch.nn as nn
+import numpy as np
 
 MONGO_URI = os.getenv("MONGO_DB_URI", "mongodb://localhost:27017/")
 KAFKA_BROKER_URI = os.getenv("KAFKA_BROKER_URI", "localhost:9094")
@@ -67,22 +71,38 @@ df = df.selectExpr("CAST(value AS STRING)") \
 def replace_dots_in_keys(languages):
   return {k.replace('.', '_'): v for k, v in languages.items()}
 
+def readme_encode(texts, tokenizer, model):
+    """Tokenise et vectorise les textes avec DistilBERT."""
+    encoded_texts = []
+    
+    for text in texts:
+        inputs = tokenizer(text, padding='max_length', truncation=True, max_length=512, return_tensors="pt")
+        with torch.no_grad():  # Pas besoin de calculer les gradients
+            outputs = model(**inputs)
+        
+        # On prend le CLS token ([0, 0, :]) qui représente l'ensemble du texte
+        sentence_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
+        encoded_texts.append(sentence_embedding)
+    
+    return np.array(encoded_texts)
+
 
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+bert_model = DistilBertModel.from_pretrained("distilbert-base-uncased")
 
 
-def readme_tokenizer(readme):
+def readme_tokenize(readme):
     tokens = tokenizer.tokenize(readme)
     return " ".join(tokens)
 
 
 # Convertir la fonction en UDF Spark
-readme_tokenizer_udf = udf(readme_tokenizer, StringType())
+readme_encode_udf = udf(readme_encode(StringType(),tokenizer,bert_model))
 
 replace_dots_udf = udf(replace_dots_in_keys, MapType(StringType(), LongType()))
 
 df = df.withColumn("languages", replace_dots_udf(col("languages")))
-df = df.withColumn("processed_readme", readme_tokenizer_udf(col("readme")))
+df = df.withColumn("processed_readme", readme_encode_udf(col("readme")))
 df = df.withColumn("last_updated", current_timestamp())
 
 # ========================================
