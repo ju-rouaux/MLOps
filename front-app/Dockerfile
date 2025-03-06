@@ -1,5 +1,5 @@
 # Use a base Python image with Alpine for a smaller footprint
-FROM python:3.11.11
+FROM pytorch/pytorch:latest
 
 USER root
 
