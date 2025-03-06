@@ -1,5 +1,4 @@
-# Use a base Python image with Alpine for a smaller footprint
-FROM pytorch/pytorch:latest
+FROM bitnami/pytorch:2.6.0
 
 USER root
 

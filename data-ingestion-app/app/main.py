@@ -68,27 +68,25 @@ df = df.selectExpr("CAST(value AS STRING)") \
 
 # ============ FUNCTIONS =================
 
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+bert_model = DistilBertModel.from_pretrained("distilbert-base-uncased")
+
 def replace_dots_in_keys(languages):
   return {k.replace('.', '_'): v for k, v in languages.items()}
 
-def readme_encode(texts, tokenizer, model):
+def readme_encode(texts):
     """Tokenise et vectorise les textes avec DistilBERT."""
-    encoded_texts = []
-    
-    for text in texts:
-        inputs = tokenizer(text, padding='max_length', truncation=True, max_length=512, return_tensors="pt")
-        with torch.no_grad():  # Pas besoin de calculer les gradients
-            outputs = model(**inputs)
-        
-        # On prend le CLS token ([0, 0, :]) qui représente l'ensemble du texte
-        sentence_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
-        encoded_texts.append(sentence_embedding)
-    
-    return np.array(encoded_texts)
+    if not texts:
+        return []  # Return an empty list if no text is provided
 
-
-tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-bert_model = DistilBertModel.from_pretrained("distilbert-base-uncased")
+    inputs = tokenizer(texts, padding='max_length', truncation=True, max_length=512, return_tensors="pt")
+    with torch.no_grad():  # Pas besoin de calculer les gradients
+        outputs = bert_model(**inputs)
+    
+    # Extract the [CLS] token representation and convert it to a list
+    sentence_embedding = outputs.last_hidden_state[:, 0, :].squeeze().tolist()
+    
+    return sentence_embedding
 
 
 def readme_tokenize(readme):
@@ -97,7 +95,7 @@ def readme_tokenize(readme):
 
 
 # Convertir la fonction en UDF Spark
-readme_encode_udf = udf(readme_encode(StringType(),tokenizer,bert_model))
+readme_encode_udf = udf(readme_encode, StringType())
 
 replace_dots_udf = udf(replace_dots_in_keys, MapType(StringType(), LongType()))
 
