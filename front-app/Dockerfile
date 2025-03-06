@@ -5,12 +5,12 @@ USER root
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the project files into the container
-COPY /app .
-
 # Install the required Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the project files into the container
+COPY /app .
 
 # Expose port 8000 to access the API (changed to 8000 to match original Dockerfile)
 EXPOSE 8000

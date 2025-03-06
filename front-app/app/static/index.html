@@ -7,7 +7,7 @@
     <script>
         async function predictLanguage() {
             const text = document.getElementById("text-input").value;
-            const response = await fetch("/predict/", {
+            const response = await fetch("/predict", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
