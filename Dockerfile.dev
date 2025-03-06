@@ -4,5 +4,8 @@ USER root
 
 ENV PATH="/.local/bin:${PATH}"
 
+ENV KAFKA_BROKER_URI="kafka:9092"
+ENV MONGO_DB_URI="mongodb://mongo:27017"
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
