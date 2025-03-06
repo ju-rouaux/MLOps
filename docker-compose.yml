@@ -11,6 +11,7 @@ services:
         condition: service_healthy
     networks:
       - mlops_project
+    restart: unless-stopped
 
   data-ingestion-app:
     build: ./data-ingestion-app
@@ -24,6 +25,7 @@ services:
         condition: service_started
     networks:
       - mlops_project
+    restart: unless-stopped
 
   mongo:
     image: mongo:8.0.4
@@ -34,6 +36,7 @@ services:
     command: mongod --quiet
     networks:
       - mlops_project
+    restart: unless-stopped
 
   kafka:
     image: bitnami/kafka:latest
@@ -54,6 +57,7 @@ services:
       retries: 5
     networks:
       - mlops_project
+    restart: unless-stopped
 
   front-app:
     build: ./front-app
@@ -69,6 +73,7 @@ services:
         condition: service_started
     networks:
       - mlops_project
+    restart: unless-stopped
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.20.1
@@ -79,6 +84,7 @@ services:
       - ${WORKING_DIRECTORY:-./.temp}/mlflow:/mlflow
     networks:
       - mlops_project
+    restart: unless-stopped
 
   grafana:
     build: ./grafana
@@ -89,6 +95,7 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards
     networks:
       - mlops_project
+    restart: unless-stopped
 
 networks:
   mlops_project:
