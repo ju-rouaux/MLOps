@@ -1,5 +1,6 @@
 services:
-  data-acquisition-app:
+  
+  data-acquisition-app: # Fetching data from GitHub
     build: ./data-acquisition-app
     environment:
       - KAFKA_BROKER_URI=kafka:9092
@@ -13,7 +14,7 @@ services:
       - mlops_project
     restart: unless-stopped
 
-  data-ingestion-app:
+  data-ingestion-app: # Ingesting data into MongoDB
     build: ./data-ingestion-app
     environment:
       - KAFKA_BROKER_URI=kafka:9092
@@ -22,6 +23,22 @@ services:
       kafka:
         condition: service_healthy
       mongo:
+        condition: service_started
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  front-app: # Frontend application, inference
+    build: ./front-app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - KAFKA_BROKER_URI=kafka:9092
+      - MONGO_DB_URI=mongodb://mongo:27017
+      - MLFLOW_URI=http://mlflow:8080
+    depends_on:
+      mlflow:
         condition: service_started
     networks:
       - mlops_project
@@ -55,22 +72,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-    networks:
-      - mlops_project
-    restart: unless-stopped
-
-  front-app:
-    build: ./front-app
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=production
-      - KAFKA_BROKER_URI=kafka:9092
-      - MONGO_DB_URI=mongodb://mongo:27017
-      - MLFLOW_URI=http://mlflow:8080
-    depends_on:
-      mlflow:
-        condition: service_started
     networks:
       - mlops_project
     restart: unless-stopped

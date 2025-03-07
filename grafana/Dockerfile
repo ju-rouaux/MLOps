@@ -1,3 +1,4 @@
+# Builder to install the MongoDB datasource plugin (free and open-source)
 FROM alpine:latest AS builder
 
 RUN apk add --no-cache wget unzip
