@@ -28,6 +28,8 @@ Main application demo.
 3. Click **Predict**
 4. Enjoy the prediction ✨
 
+**Note:** The application will not start and will continuously restart if no model is available. Refer to the MLFlow section to register a model.
+
 ### MLFlow
 View and register new models.
 
