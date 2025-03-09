@@ -83,6 +83,7 @@ services:
     command: mlflow server --host 0.0.0.0 --port 8080 --backend-store-uri /mlflow/artifacts
     volumes:
       - ${WORKING_DIRECTORY:-./.temp}/mlflow:/mlflow
+      - ${WORKING_DIRECTORY:-./.temp}/mlflow/run_artifacts:/mlartifacts
     networks:
       - mlops_project
     restart: unless-stopped

@@ -41,10 +41,10 @@ except Exception as e:
 
 # Charger le modèle de MLflow et le mapping des labels
 mlflow.set_tracking_uri(MLFLOW_URI)
-model = mlflow.pyfunc.load_model("models:/Aeugh@prod")
+model = mlflow.pyfunc.load_model("models:/ApplicationModel@prod")
 client = mlflow.client.MlflowClient(mlflow.get_tracking_uri())
 
-model_info = client.get_model_version_by_alias("Aeugh", "prod")
+model_info = client.get_model_version_by_alias("ApplicationModel", "prod")
 label_mapping_path = mlflow.artifacts.download_artifacts(artifact_uri=f"runs:/{model_info.run_id}/label_mapping.json")
 with open(label_mapping_path, 'r') as f:
   label_mapping = json.load(f)
