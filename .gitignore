@@ -1,0 +1,8 @@
+.DS_Store
+.local
+.env
+.temp
+keys/
+research/results
+front-api/data_json
+__pycache__

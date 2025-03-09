@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "dev" ]
+
+env:
+  WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
+
+jobs:
+
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and start the Docker containers
+      run: docker compose up --build -d
+    - name: Stop and remove Docker containers
+      run: docker compose down

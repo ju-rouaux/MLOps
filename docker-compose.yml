@@ -1,0 +1,105 @@
+services:
+  
+  data-acquisition-app: # Fetching data from GitHub
+    build: ./data-acquisition-app
+    environment:
+      - KAFKA_BROKER_URI=kafka:9092
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      - ${WORKING_DIRECTORY:-./.temp}/acquisition:/app/saves
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  data-ingestion-app: # Ingesting data into MongoDB
+    build: ./data-ingestion-app
+    environment:
+      - KAFKA_BROKER_URI=kafka:9092
+      - MONGO_DB_URI=mongodb://mongo:27017
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  front-app: # Frontend application, inference
+    build: ./front-app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - KAFKA_BROKER_URI=kafka:9092
+      - MONGO_DB_URI=mongodb://mongo:27017
+      - MLFLOW_URI=http://mlflow:8080
+    depends_on:
+      mlflow:
+        condition: service_started
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:8.0.4
+    ports:
+      - 27017:27017
+    volumes:
+      - ${WORKING_DIRECTORY:-./.temp}/mongo:/data/db
+    command: mongod --quiet
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - 9094:9094
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker # One node will act as the controller and a broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.20.1
+    ports:
+      - 8090:8080
+    command: mlflow server --host 0.0.0.0 --port 8080 --backend-store-uri /mlflow/artifacts
+    volumes:
+      - ${WORKING_DIRECTORY:-./.temp}/mlflow:/mlflow
+      - ${WORKING_DIRECTORY:-./.temp}/mlflow/run_artifacts:/mlartifacts
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+  grafana:
+    build: ./grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    networks:
+      - mlops_project
+    restart: unless-stopped
+
+networks:
+  mlops_project:
+    name: mlops_project
+    driver: bridge

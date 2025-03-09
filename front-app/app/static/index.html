@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        async function predictLanguage() {
+            const text = document.getElementById("text-input").value;
+            const spinner = document.getElementById("loading-spinner");
+            const resultElement = document.getElementById("prediction-result");
+
+            // Show the spinner and clear previous result
+            spinner.style.display = "block";
+            resultElement.innerText = "";
+
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ readme: text })
+            });
+            const result = await response.json();
+
+            // Hide the spinner and show the result
+            spinner.style.display = "none";
+            resultElement.innerText = `Predicted Language: ${result.predicted_language}`;
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">Language Prediction</h1>
+        <textarea id="text-input" rows="10" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Enter your text here..."></textarea>
+        <button onclick="predictLanguage()" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-200">Predict</button>
+        <div id="loading-spinner" class="flex justify-center mt-4" style="display: none;">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+        </div>
+        <p id="prediction-result" class="mt-4 text-center text-lg font-semibold"></p>
+    </div>
+    <style>
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>
