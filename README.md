@@ -1,3 +1,6 @@
+# Streamlining Machine Learning: A Simple MLOps Pipeline in Action
+A School Project to Get Hands-On Experience with MLOps Technology.
+
 ## Run
 **HIGHLY RECOMMENDED BEFORE RUNNING THE APPLICATION** \
 To accelerate data acquisition from GitHub, create a ``.env``  file at the root of the repository containing the following line. See: [Managing your personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
