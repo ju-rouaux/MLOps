@@ -16,7 +16,7 @@ docker compose up --build
 ```
 
 ### Changing the location of application data
-By default, the application will create a .temp directory at the root of the repository. To change the location, simply add the following line to the ``.env`` file.
+By default, the application will create a ``.temp`` directory at the root of the repository. To change the location, simply add the following line to the ``.env`` file.
 ```
 WORKING_DIRECTORY=/absolute/path/to/any/location
 ```
