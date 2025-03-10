@@ -38,7 +38,7 @@ View and register new models.
 
 #### Create a new model
 1. Optionally run the dev container (Visual Studio Code recommended)
-2. Through the notebook Model-from-Mongo.ipynb, train a model and push it to MLFlow
+2. Through the notebook ``Model-from-Mongo.ipynb``, train a model and push it to MLFlow
 
 #### Register a model
 1. Navigate to ``http://localhost:8090/``
